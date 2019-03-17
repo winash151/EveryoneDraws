@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html>
+<!--Sole Proprietory Ownership of Ashwin Kumar Suresh-->
+<!--Copyright 2013 Shwindle Inc.-->
+    <head>
+    <link rel="shortcut icon" href="pallet.png" type="image/x-icon"> 
+    <title>Draw Together</title>
+        <style>
+        html{
+        -webkit-user-select:none;
+        }
+            #canvas{
+            position:fixed;
+            top:0;left:0;cursor:crosshair;
+            }
+            #color{
+                position:fixed;top:5px;left:5px;
+            }
+            #widthHolder{
+                position:fixed;
+                background-color:black;
+                height:30px;
+                width:30px;
+                top:40px;
+                left:23px;
+                border-radius:70px;
+                -webkit-transition-property:background-color,border-radius;
+                -webkit-transition-duration:1s;
+                -webkit-transition-timing-function:linear;
+                cursor:pointer;
+            }
+            #lineNum{
+                position:fixed;height:26px;width:22px;left:0px;top:40px;display:none;
+                -webkit-transition-property:display,border-color;
+                -webkit-transition-duration:1s;
+                -webkit-transition-timing-function:linear;
+                border:1px solid;
+                border-color:black;
+            }
+            #widths{
+                position:fixed;
+                
+                height:26px;top:40px;left:38px;width:13px;background-color:rgb(245,245,245);
+                border-top-right-radius:70px;border-bottom-right-radius:70px;
+                border-width:2px;border-style:solid;
+                border-color:black;
+                border-left:none;
+                -webkit-transition-property:border-color,width;
+                -webkit-transition-duration:1s;
+                -webkit-transition-timing-function:linear;
+                overflow:hidden;
+            }
+            #fivepx{
+                position:absolute;
+                top:10.5px;
+                left:27.5px;
+                height:5px;
+                width:5px;
+                background-color:black;
+                border-radius:20px;
+                cursor:pointer;
+            }
+            #eightpx{
+                position:absolute;
+                top:9px;
+                left:56px;
+                height:8px;
+                width:8px;
+                background-color:black;
+                border-radius:20px;
+                cursor:pointer;
+            }
+            #fifteenpx{
+                position:absolute;
+                top:5.5px;
+                left:82.5px;
+                height:15px;
+                width:15px;
+                background-color:black;
+                border-radius:40px;
+                cursor:pointer;
+            }
+            #clearButt{
+                position:fixed;top:-5px;right:-5px;padding:10px;
+                display:block;background-color:#FF9999;
+                border-bottom-left-radius:18px;border-style:solid;border-width:3px;
+                border-color:#B26B6B;
+                font-family:Lucida Console;
+                font-weight:700;
+                font-style:italic;
+                text-align:center;font-size:14px;
+                color:black;
+                cursor:pointer;
+                -webkit-transition-property:background-color,color;
+                -webkit-transition-duration:1.5s;
+            }
+            #clearButt:hover{
+                background-color:#FF3399;
+                color:white;
+            }
+            #loading{
+                right:5px;position:fixed;bottom:-12px;padding:0;
+                font-family:"arial";font-weight:lighter;font-size:30px;
+            }
+            #progress{
+                position:fixed;bottom:0;left:0;width:100%;
+            }
+            #pencil{
+                position:fixed;top:80px;left:12px;background-image:url('pencil.png');width:29px;height:30px;background-size:100% 100%;
+                cursor:pointer;
+            }
+            #mycanvas{
+            position:fixed;
+            top:0;left:0;cursor:crosshair;
+            }
+            #toolsHolder{
+                position:fixed;top:0;left:0;width:60px;
+                height:230px;background-color:white;
+                border-right:5px outset;
+                border-bottom:5px outset;
+                -webkit-transition-property:width,left;
+                -webkit-transition-duration:2s;
+                -webkit-transition-timing-function:linear;
+                overflow:visible;
+            }
+            #rect{
+                position:fixed;top:124px;left:3px;height:25px;width:50px;background-color:black;
+                -webkit-transition-property:background-color;
+                -webkit-transition-duration:1s;
+                -webkit-transition-timing-function:linear;
+                cursor:pointer;
+                border-radius:0%;
+            }
+            #circle{
+                position:fixed;top:174px;left:3px;height:25px;width:50px;background-color:black;
+                -webkit-transition-property:background-color;
+                -webkit-transition-duration:1s;
+                -webkit-transition-timing-function:linear;
+                cursor:pointer;
+                border-radius:50%;
+            }
+            #closer{
+                position:absolute;
+                bottom:0px;
+                left:0px;
+                width:100%;
+                height:12px;
+                background-color:#E6E6E6;
+                cursor:pointer;
+                -webkit-transition-property:background-color;
+                -webkit-transition-duration:1s;
+            }
+            #closer:hover{
+                background-color:#A1A1A1;
+            }
+            #closePara{
+                position:absolute;top:-4px;left:2px;margin:0;
+                font-weight:bolder;font-family:arial;
+            }
+            </style>
+        <script src="assets/jquery.js"></script>
+        <script src='assets/firebase.js'></script>
+
+    </head>
+<body>
+        <canvas id="canvas"></canvas>
+        <canvas id="mycanvas"></canvas>
+        <div id="toolsHolder">
+        <input id="color" type="color">
+        <div id="pencil"></div>
+        <div id='rect'></div>
+        <div id='circle'></div>
+        <input type="text" id="lineNum" value=5>
+        <div id="widths"><div id="fivepx"></div><div id="eightpx"></div><div id="fifteenpx"></div></div>
+        <div id="widthHolder"></div>
+        <div id="closer"><p id="closePara"><<</p></div>
+        </div>
+        <button id="clearButt">Erase</button>
+        <p id="loading">Don't panic. Your page is loading...</p>
+        <progress value=0 max=1 id="progress"></progress>
+        <script>
+var tool="pencil";//The utensil
+var startx,starty;//PRevious mouse Positions
+        var random=prompt('Username?');//Username request
+                if(random!==null){//Starts download timer if username is valid
+        startime=new Date().getTime();
+        }
+        var dataRef=new Firebase('https://winash.firebaseio.com/paint/'+random.toString());//Firebase api username variable
+        var i=0,startime,endtime;
+        var ctx=document.getElementById("canvas").getContext('2d'),go=false,down=false,color,whole,yoloswag,myctx=document.getElementById("mycanvas").getContext('2d');//Vars
+        ctx.lineJoin='round';//Canvas styles
+        ctx.lineCap="round";
+        ctx.lineWidth=5;
+        var count=0,data,dataRef,countRef;//Vars
+        $("#canvas").attr({"width":window.innerWidth,"height":window.innerHeight});//Sizing Canvas
+        $("#mycanvas").attr({"width":window.innerWidth,"height":window.innerHeight});
+        var w=window.innerWidth,h=window.innerHeight;//useful later height and width variables
+        var data=new Firebase('https://winash.firebaseio.com/paint/');//Looks at everyone's input
+        
+        countRef=dataRef.child('count');//Number of paint function
+dataRef.once("value",function(sar){
+ctx.lineWidth=5;
+if(sar.val()===null){
+    document.getElementById("progress").value=document.getElementById("progress").max;
+$("#loading").css("display","none");
+alert('Ready!');
+$("#progress").css("display","none");
+go=true;
+}
+    else if(sar.val().count/1==sar.val().count){
+        whole=parseInt(sar.val().count,10);
+        count=parseInt(sar.val().count,10);
+        yoloswag=sar.val();
+        drawPast();
+    }
+});
+function drawPast(){
+var sarp=yoloswag;
+document.getElementById("progress").max=sarp.count;
+    var snapper=sarp[i];
+                        if(snapper){     
+            color=snapper.color;
+            switch(snapper.tool){
+                case 'pencil':
+            switch(snapper.type){
+                
+                case "mousedown":
+                    ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.startx,snapper.starty,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                    break;
+                case "mouseup":
+                    ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.gotox,snapper.gotoy,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                    break;
+                    case "mouseover":
+                        ctx.beginPath();
+                        break;
+                case "mousemove":
+                ctx.beginPath();
+                ctx.moveTo(snapper.startx,snapper.starty);
+                ctx.lineWidth=snapper.lineWidth;ctx.lineTo(snapper.gotox,snapper.gotoy);ctx.strokeStyle=color;ctx.stroke();
+                ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.gotox,snapper.gotoy,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                ctx.lineWidth=document.getElementById("lineNum").value;
+            }
+            break;
+            case 'circle':
+                ctx.fillStyle=color;
+            ctx.beginPath();
+            ctx.moveTo(snapper.startx,parseFloat(snapper.starty+snapper.gotoy)/2);
+            ctx.bezierCurveTo(snapper.startx,snapper.starty,snapper.gotox,snapper.starty,snapper.gotox,(snapper.starty+snapper.gotoy)/2);
+            ctx.bezierCurveTo(snapper.gotox,snapper.gotoy,snapper.startx,snapper.gotoy,snapper.startx,parseFloat(snapper.starty+snapper.gotoy)/2);
+            ctx.fill();
+                break;
+            case 'rect':
+                ctx.fillStyle=color;
+                ctx.fillRect(snapper.startx,snapper.starty,snapper.gotox,snapper.gotoy);
+            }
+            }
+i++;
+console.log(i);
+document.getElementById("progress").value=i;
+if(i<=parseInt(sarp.count,10)){
+drawPast();
+}
+else{
+endtime=new Date().getTime();
+ctx.lineWidth=5;
+go=true;
+$("#loading").css("display","none");
+alert("Your download took "+parseFloat((endtime-startime)/1000)+" seconds.");
+$("#progress").css("display","none");
+}
+    }
+        data.on('child_changed',function(snap){
+            console.log(snap.val()[snap.val().count].tool);
+            drawFromCloud(snap.val()[snap.val().count]);
+        });
+        function drawFromCloud(snapper){           
+                        if(snapper){     
+            color=snapper.color;
+            switch(snapper.tool){
+                case 'pencil':
+            switch(snapper.type){
+                
+                case "mousedown":
+                    ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.startx,snapper.starty,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                    break;
+                case "mouseup":
+                    ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.gotox,snapper.gotoy,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                    break;
+                    case "mouseover":
+                        ctx.beginPath();
+                        break;
+                case "mousemove":
+                ctx.beginPath();
+                ctx.moveTo(snapper.startx,snapper.starty);
+                ctx.lineWidth=snapper.lineWidth;ctx.lineTo(snapper.gotox,snapper.gotoy);ctx.strokeStyle=color;ctx.stroke();
+                ctx.beginPath();
+                    ctx.fillStyle=color;ctx.arc(snapper.gotox,snapper.gotoy,snapper.lineWidth/2,0,2*Math.PI);
+                    ctx.fill();
+                ctx.lineWidth=document.getElementById("lineNum").value;
+            }
+            break;
+            case 'circle':
+                ctx.fillStyle=color;
+            ctx.beginPath();
+            ctx.moveTo(snapper.startx,parseFloat(snapper.starty+snapper.gotoy)/2);
+            ctx.bezierCurveTo(snapper.startx,snapper.starty,snapper.gotox,snapper.starty,snapper.gotox,(snapper.starty+snapper.gotoy)/2);
+            ctx.bezierCurveTo(snapper.gotox,snapper.gotoy,snapper.startx,snapper.gotoy,snapper.startx,parseFloat(snapper.starty+snapper.gotoy)/2);
+            ctx.fill();
+                break;
+            case 'rect':
+                ctx.fillStyle=color;
+                ctx.fillRect(snapper.startx,snapper.starty,snapper.gotox,snapper.gotoy);
+            }
+            }
+        }            
+                $("canvas").on('mousedown mouseup mousemove mouseover',function(e){                    
+                if(go){
+                switch(e.type){
+                    case "mousedown":
+                    down=true;
+                    switch(tool){
+                        case 'pencil':
+                    startx=event.pageX;starty=event.pageY;
+                    dataRef.child(count.toString()).set({tool:'pencil',startx:startx,starty:starty,color:document.getElementById("color").value,type:"mousedown",lineWidth:ctx.lineWidth,name:random});
+                    countRef.set(count);
+                    count++;
+                    break;
+                    case 'circle':
+                        startx=event.pageX;starty=event.pageY;
+                        break;
+                    case 'rect':                        
+                        startx=event.pageX;starty=event.pageY;                        
+                    }
+                    break;
+                    case "mouseup":
+                    down=false;
+                    switch(tool){
+                        case 'pencil':
+                    
+                    dataRef.child(count.toString()).set({tool:'pencil',gotox:event.pageX,gotoy:event.pageY,color:document.getElementById("color").value,type:"mouseup",lineWidth:ctx.lineWidth,name:random});
+                    countRef.set(count);
+                   count++;
+                    break;
+                    case 'circle':
+                        myctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+                    dataRef.child(count.toString()).set({tool:'circle',startx:startx,starty:starty,gotox:event.pageX,gotoy:event.pageY,color:document.getElementById("color").value});
+                    countRef.set(count);
+                    count++;
+                        break;
+                    case 'rect':
+                        myctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+                    dataRef.child(count.toString()).set({type:'mouseup',tool:'rect',startx:startx,starty:starty,gotox:event.pageX-startx,gotoy:event.pageY-starty,color:document.getElementById("color").value});
+                    countRef.set(count);
+                    count++;
+                    }
+                    break;
+                    case "mouseover":
+                        switch(tool){
+                            case 'pencil':
+                    startx=event.pageX;starty=event.pageY;
+                    break;
+                        }
+                        break;
+                    case "mousemove":
+                        if(down){
+                            switch(tool){
+                    case 'pencil':
+                    dataRef.child(count.toString()).set({tool:'pencil',color:document.getElementById("color").value,type:"mousemove",startx:startx,starty:starty,gotox:event.pageX,gotoy:event.pageY,lineWidth:ctx.lineWidth,name:random});
+                    countRef.set(count);
+                    count++;
+                    startx=event.pageX;starty=event.pageY;
+                    break;
+                    case 'circle':
+                        myctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+                    myctx.fillStyle=document.getElementById("color").value;
+                    myctx.beginPath();
+                    myctx.moveTo(startx,parseFloat(starty+event.pageY)/2);
+                    myctx.bezierCurveTo(startx,starty,event.pageX,starty,event.pageX,(starty+event.pageY)/2);
+                    myctx.bezierCurveTo(event.pageX,event.pageY,startx,event.pageY,startx,parseFloat(starty+event.pageY)/2);
+                    myctx.fill();
+                        break;
+                    case 'rect':
+                        myctx.clearRect(0,0,w,h);
+                    myctx.fillStyle=document.getElementById("color").value;
+                    myctx.fillRect(startx,starty,event.pageX-startx,event.pageY-starty);
+                            }
+                        }
+                        else{
+                            if(tool=='pencil'){
+                                myctx.clearRect(0,0,w,h);myctx.beginPath();myctx.arc(event.pageX,event.pageY,ctx.lineWidth/2,0,2*Math.PI);myctx.fillStyle=document.getElementById("color").value;myctx.fill();
+                            }
+                        }
+                }
+                }
+                });
+                $("#widthHolder").click(function(){
+                    if(parseInt($("#widths").css("width"),10)===13){
+                        $("#widthHolder").css({"border-top-left-radius":"0","border-bottom-left-radius":"0","border-top-right-radius":"0","border-bottom-right-radius":"0"});
+                        $("#widths").css("width","105px");
+                        $("#lineNum").css("display","block");
+                    }
+                    else{
+                        $("#widthHolder").css({"border-top-left-radius":"70px","border-bottom-left-radius":"70px","border-top-right-radius":"70px","border-bottom-right-radius":"70px"});
+                        $("#widths").css("width","13px");
+                        $("#lineNum").css("display","none");
+                    }
+                });
+            $("#fivepx").mousedown(function(){ 
+                    ctx.lineWidth=5;
+                    document.getElementById("lineNum").value=5;
+                });
+                $("#eightpx").mousedown(function(){
+                    ctx.lineWidth=8;
+                    document.getElementById("lineNum").value=8;
+                });
+                $("#fifteenpx").mousedown(function(){
+                    ctx.lineWidth=15;
+                    document.getElementById("lineNum").value=15;
+                });
+                $("#color").change(function(){
+                    $("#widthHolder").css("background-color",document.getElementById("color").value);
+                    $("#rect").css("background-color",document.getElementById("color").value);
+                    $("#circle").css("background-color",document.getElementById("color").value);
+                   $("#widths").css({"border-color":document.getElementById("color").value});
+                   $("#lineNum").css({"border-color":document.getElementById("color").value});
+                });
+                $("#clearButt").click(function(){
+                    var doomChoice=confirm('Are you sure?\nYour artistic footprint will be washed away forever!');
+                    if(doomChoice){
+                    ctx.clearRect(0,0,w,h);
+                    count=0;
+                    dataRef.set(null);
+                    }
+                });
+               $("#pencil").click(function(){
+                   tool='pencil';myctx.clearRect(0,0,w,h);
+               });
+               $("#rect").click(function(){
+                   tool='rect';myctx.clearRect(0,0,w,h);
+               });
+               $("#circle").click(function(){
+                   tool='circle';myctx.clearRect(0,0,w,h);
+               });
+               $("#closer").click(function(){
+                   $("#toolsHolder").css({"overflow":"hidden","width":"0","left":"-10px"});
+                   setTimeout(function(){
+                       $("#rect").css("display","none");
+                   $("#pencil").css("display","none");
+                   $("#color").css("display","none");
+                   $("#widthHolder").css("display","none");
+                   },2000);    
+               });
+               $("#lineNum").change(function(){
+                   ctx.lineWidth=document.getElementById("lineNum").value;
+               });
+               $(document).keydown(function(e){
+                   if(e.keyCode==16){
+                       if(parseInt($("#toolsHolder").css("width"),10)==60){
+                           $("#toolsHolder").css({"overflow":"hidden","width":"0","left":"-10px"});
+                   setTimeout(function(){
+                       $("#rect").css("display","none");
+                   $("#pencil").css("display","none");
+                   $("#color").css("display","none");
+                   $("#widthHolder").css("display","none");
+                   },2000); 
+                       }
+                       else{
+                    $("#rect").css("display","block");
+                   $("#pencil").css("display","block");
+                   $("#color").css("display","block");
+                   $("#widthHolder").css("display","block");
+                    $("#toolsHolder").css({"width":"60px","left":"0"});
+                    setTimeout(function(){
+                        $("#toolsHolder").css("overflow","visible");                     
+                    },2000);
+                       }
+                   }
+               });
+        </script>
+    </body>
+</html>
